@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<!--[if lt IE 9]><html class="no-js lt-ie9" lang="fr" dir="ltr"><![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="fr" dir="ltr">
+<!--<![endif]-->
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-170114280-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-170114280-1');
+</script>
+
+<meta charset="utf-8">
+<!-- Web Experience Toolkit (WET) / Boîte à outils de l'expérience Web (BOEW) wet-boew.github.io/wet-boew/License-en.html / wet-boew.github.io/wet-boew/Licence-fr.html -->
+<title>Outil d'inventaire du contenu Web du GC de la COVID-19 - </title>
+<meta content="width=device-width,initial-scale=1" name="viewport">
+<!-- Meta data -->
+<meta name="description" content="COVID-19">
+<link rel="stylesheet" type="text/css"
+	href="https://cdn.datatables.net/colreorder/1.5.2/css/colReorder.dataTables.min.css">
+<!-- Meta data-->
+<!-- Load closure template scripts -->
+<script
+	src="https://www.canada.ca/etc/designs/canada/cdts/gcweb/rn/cdts/compiled/soyutils.js"></script>
+<script
+	src="https://www.canada.ca/etc/designs/canada/cdts/gcweb/rn/cdts/compiled/wet-fr.js"></script>
+<noscript>
+	<!-- Write closure fall-back static file -->
+	<!-- /ROOT/etc/designs/canada/cdts/gcweb/v4_0_28/cdts/static/refTop.html -->
+</noscript>
+<!-- Write closure template -->
+<script>
+	document.write(wet.builder.refTop({
+		"isApplication" : true
+	}));
+</script>
+<style>
+main * {
+	font-size: .92em !important;
+}
+
+input {
+	height: 1.55em !important;
+}
+
+select {
+	height: 1.55em !important;
+}
+
+.checkboxes label {
+	display: inline-block;
+	padding-right: 10px;
+	white-space: nowrap;
+}
+
+.checkboxes input {
+	vertical-align: middle;
+}
+
+.checkboxes label span {
+	vertical-align: middle;
+}
+
+.beta-top, .alpha-top {
+	padding-top: 2px !important;
+	padding-bottom: 2px !important;
+	top: 0px;
+	background-color: #f2f2f2;
+	z-index: 100;
+}
+</style>
+</head>
+<body vocab="https://schema.org/" typeof="WebPage">
+	<section class="experimental alpha-top">
+		<h2 class="wb-inv">Alpha</h2>
+		<div class="container">
+			<small><label class="alpha-label">Alpha</label>&nbsp;&nbsp;
+				Ceci est une version expérimentale de Canada.ca destinée à être
+				testée par le public.</small>
+		</div>
+	</section>
+	<div id="def-top">
+		<!-- Write closure fall-back static file -->
+		<!-- /ROOT/etc/designs/canada/cdts/gcweb/v4_0_28/cdts/static/top-fr.html -->
+	</div>
+	<!-- Write closure template -->
+	<script>
+		var defTop = document.getElementById("def-top");
+		defTop.outerHTML = wet.builder
+				.appTop({
+					"appName" : [ {
+						"text" : "Outil d'inventaire du contenu Web du GC de la COVID-19 - <!-- IMPORT DATE -->",
+						"href" : "https://covid-19inventory.tbs.alpha.canada.ca/covid19_fr.html"
+					} ],
+					"lngLinks" : [ {
+						"lang" : "en",
+						"href" : "covid19_en.html",
+						"text" : "English"
+					} ]
+				});
+	</script>
+
+	<main property="mainContentOfPage"
+		class="container-fluid wb-prettify all-pre">
+		<br />
+		<div class="row">
+			<div class="col-md-3">
+				<h4 class="wb-inv">Options de filtre</h4>
+				<details open>
+					<summary>
+						<h4 class="h4">Options de filtre</h4>
+					</summary>
+					<p class="mrgn-tp-md">Utilisez les filtres pour modifier vos
+						résultats dans le tableau de données</p>
+					<form class="wb-tables-filter" data-bind-to="dataset-filter">
+						<div class="form-group">
+							<label for="dt_theme">Thème</label> 
+							<select class="form-control"
+								id="dt_theme" name="dt_theme" data-column="0">
+								<option value="">Tous</option>
+								<!-- THEMES -->
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="dt_department">Ministère</label>
+							 <select
+								class="form-control" id="dt_department" name="dt_department" data-column="1">
+								<option value="">Tous</option>
+								<!-- DEPARTMENTS -->
+							</select>
+						</div>
+						<div class="form-group">
+							<fieldset>
+								<legend>
+									<span class="field-name">Pour</span>
+								</legend>
+								<ul class="list-unstyled">
+									<li class="checkbox"><label for="dt_audience3"><input
+											type="checkbox" id="dt_audience3" name="dt_audience"
+											data-column="11" value="Contenu principal Covid">Contenu
+											principal Covid</label></li>
+									<li class="checkbox"><label for="dt_audience1"><input
+											type="checkbox" id="dt_audience1" name="dt_audience"
+											data-column="11" value="Contient une alerte Covid">Contient
+											une alerte Covid</label></li>
+									<li class="checkbox"><label for="dt_audience2"><input
+											type="checkbox" id="dt_audience2" name="dt_audience"
+											data-column="11" value="Liens vers des pages Covid">Liens
+											vers des pages Covid</label></li>
+									<li class="checkbox"><label for="dt_audience4"><input
+											type="checkbox" id="dt_audience4" name="dt_audience"
+											data-column="11" value="Nouvelles">Nouvelles</label></li>
+								</ul>
+							</fieldset>
+						</div>
+						<div class="btn-group">
+							<button type="submit" class="btn btn-primary"
+								aria-controls="dataset-filter">Filtrer</button>
+							<button type="reset" class="btn btn-primary">Réinitialiser
+								les paramètres</button>
+						</div>
+					</form>
+				</details>
+			</div>
+			<div class="col-md-9">
+				<p>
+					<a href="https://wiki.gccollab.ca/COVID-19_Content_inventory_tool" 
+						class="btn btn-default" role="button">Outil
+						d’inventaire du contenu Web – Instructions <span
+						class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+					</a>
+				</p>
+				<div class='checkboxes'>
+					<span>Afficher ou masquer les colonnes :</span>
+					<!-- TOGGLE COLUMNS -->
+				</div>
+				<table class="table table-striped table-hover" id="dataset-filter"
+					aria-live="polite">
+					<thead>
+						<tr>
+							<!-- LABELS -->
+						</tr>
+					</thead>
+					<!-- ROW DATA -->
+				</table>
+
+				<div id="def-preFooter">
+					<!-- Write closure fall-back static file -->
+					<!-- /ROOT/etc/designs/canada/cdts/gcweb/v4_0_28/cdts/static/preFooter-fr.html -->
+				</div>
+				<!-- Write closure template -->
+				<script>
+					var defPreFooter = document.getElementById("def-preFooter");
+					defPreFooter.outerHTML = wet.builder.preFooter({
+						"dateModified" : "<!-- IMPORT DATE -->"
+					});
+				</script>
+			</div>
+		</div>
+	</main>
+	<div id="def-footer">
+		<!-- Write closure fall-back static file -->
+		<!-- /ROOT/etc/designs/canada/cdts/gcweb/v4_0_28/cdts/static/footer-fr.html -->
+	</div>
+	<!-- Write closure template -->
+	<script>
+		var defFooter = document.getElementById("def-footer");
+		defFooter.outerHTML = wet.builder.appFooter({
+			"showFeatures" : false
+		});
+	</script>
+	<!-- Write closure template -->
+	<script>
+		document.write(wet.builder.refFooter({
+			"isApplication" : true
+		}));
+	</script>
+	<script
+		src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+	<script
+		src="https://cdn.datatables.net/buttons/1.6.1/js/dataTables.buttons.min.js"></script>
+	<script
+		src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.flash.min.js"></script>
+	<script
+		src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+	<script
+		src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+	<script
+		src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+	<script
+		src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.html5.min.js"></script>
+	<script
+		src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.print.min.js"></script>
+	<script>
+		$(document)
+				.on(
+						"wb-ready.wb",
+						function() {
+							function formatDate() {
+							    var d = new Date(),
+							        month = '' + (d.getMonth() + 1),
+							        day = '' + d.getDate(),
+							        year = d.getFullYear();
+
+							    if (month.length < 2) 
+							        month = '0' + month;
+							    if (day.length < 2) 
+							        day = '0' + day;
+
+							    return [year, month, day].join('-');
+							}
+							
+							var title = $('title').text() + formatDate();
+							$('title').text(title);
+							$('.app-name').text(title);
+							$('time').text(formatDate());
+							
+							
+							
+							
+							i18n = wb.i18n;
+							i18nText = {
+								aria : {
+									sortAscending : i18n("sortAsc"),
+									sortDescending : i18n("sortDesc")
+								},
+								emptyTable : i18n("emptyTbl"),
+								info : i18n("infoEntr"),
+								infoEmpty : i18n("infoEmpty"),
+								infoFiltered : i18n("infoFilt"),
+								lengthMenu : i18n("lenMenu"),
+								loadingRecords : i18n("load"),
+								paginate : {
+									first : i18n("first"),
+									last : i18n("last"),
+									next : i18n("nxt"),
+									previous : i18n("prv"),
+									page : i18n("page")
+								},
+								processing : i18n("process"),
+								search : i18n("filter"),
+								thousands : i18n("info1000"),
+								zeroRecords : i18n("infoEmpty")
+							};
+
+							$("#dataset-filter")
+									.find("th")
+									.append(
+											"<span class='sorting-cnt'><span class='sorting-icons'></span></span>");
+							var table = $('#dataset-filter').DataTable({
+								dom : "B<'top'fil>rt<'bottom'p><'clear'>",
+								colReorder : true,
+								language : i18nText,
+								buttons : [ {
+									extend : 'excel',
+									className : 'btn btn-default',
+									exportOptions : {
+										columns : [ ':visible,.export' ]
+									}
+								} ]
+							});
+
+							$('input.toggle-vis')
+									.each(
+											function(index, elem) {
+												if ($(elem).is(":checked")) {
+													table
+															.column(
+																	$(elem)
+																			.attr(
+																					'data-column'))
+															.visible(true);
+												} else {
+													table
+															.column(
+																	$(elem)
+																			.attr(
+																					'data-column'))
+															.visible(false);
+												}
+											});
+
+							$('input.toggle-vis').on(
+									'change',
+									function(e) {
+										e.preventDefault();
+
+										// Get the column API object
+										var column = table.column($(this).attr(
+												'data-column'));
+
+										// Toggle the visibility
+										column.visible(!column.visible());
+									});
+							$(".dt-buttons")
+									.prepend(
+											"Faites vos sélections en utilisant les filtres, puis cliquez sur Excel pour télécharger vos données.");
+							$('#dataset-filter tbody').on(
+									'click',
+									'button',
+									function() {
+										var row = table.row(
+												$(this).parents('tr')).index();
+										var url = "";
+										$.each(table.columns()[0], function(
+												index, item) {
+											var title = $(
+													table.column(index)
+															.header()).text()
+													.trim()
+											if (title === 'URL') {
+												url = $(
+														table.cell(row, index)
+																.data()).attr(
+														"href");
+											}
+										});
+										$("#commenturl").val(url);
+										wb.doc.trigger("open.wb-lbx", [ [ {
+											src : "#submitWindow",
+											type : "inline"
+										} ], true ]);
+									});
+
+							$('input#submit').click(function(e) {
+								e.preventDefault();
+								$.ajax({
+									url : 'http://emailservice/email',
+									type : 'POST',
+									dataType : 'text',
+									data : $('form#commentForm').serialize(),
+									success : function(data) {
+
+									},
+									error : function(xhr, status, err) {
+										alert(xhr.responseText);
+									}
+								});
+								$(".popup-modal-dismiss").click();
+							});
+							
+						});
+	</script>
+	<section id="submitWindow"
+		class="mfp-hide modal-dialog modal-content overlay-def">
+		<header class="modal-header">
+			<h2 class="modal-title">Use this form to submit corrections or
+				comments on this row in the inventory. Comments will be reviewed by
+				DTO</h2>
+		</header>
+		<div class="modal-body">
+			<div class="wb-frmvld">
+				<form id="commentForm" name="commentForm" method="post">
+					<input type="hidden" name="commenturl" id="commenturl" value="" />
+					<input type="hidden" name="dtoemailAddress" id="dtoemailAddress"
+						value="dto-btn@tbs-sct.gc.ca" /> <input type="hidden" id="lang"
+						name="lang" value="en" />
+					<div class="form-group">
+						<label for="name" class="control-label required"> Name: </label> <input
+							class="form-control" id="name" name="name" type="text"
+							maxlength="30" required="required" size="40" />
+					</div>
+					<div class="form-group">
+						<label for="emailAddress" class="control-label required">
+							Email: </label> <input type="email" id="emailAddress" name="emailAddress"
+							class="form-control" required="required" maxlength="100"
+							size="40">
+					</div>
+					<div class="form-group">
+						<label for="comments" class="control-label required">
+							Comments: </label>
+						<textarea id="comments" name="comments" class="form-control"
+							required="required" rows="10" cols="47"></textarea>
+					</div>
+					<input type="submit" class="btn" name="submit" id="submit"
+						value="Submit" />
+				</form>
+			</div>
+		</div>
+	</section>
+</body>
+</html>
