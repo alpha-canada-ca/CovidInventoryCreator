@@ -44,7 +44,7 @@ jobs:
     - uses: Azure/k8s-deploy@v1
       with:
         manifests: |
-          kubernetes/covid19inv-cj.yml.yml
+          kubernetes/covid19inv-cj.yml
         images: |
           tbsacr.azurecr.io/covidinventorycreator:${{ github.sha }}
         namespace: |
