@@ -170,7 +170,7 @@ public class Main {
 	public static final DateFormat AEM_DATE_FORMAT = new SimpleDateFormat("MM-dd-yyyy");
 	public String importDate = "";
 	public static String TODAY;
-	public static String YESTERDAY;
+	public static String TWODAYSAGO;
 	public static String SEVENDAYSAGO;
 
 	private String datePostFix = "T00:00:00.000";
@@ -206,7 +206,7 @@ public class Main {
 		copyFiles();
 		calculateDates();
 		if (date == null) {
-			this.importDate = YESTERDAY;
+			this.importDate = TWODAYSAGO;
 		} else {
 			this.importDate = date;
 		}
@@ -340,7 +340,7 @@ public class Main {
 
 	private void calculateDates() {
 		TODAY = this.calculateDays(-1);
-		YESTERDAY = this.calculateDays(-1);
+		TWODAYSAGO = this.calculateDays(-2);
 		SEVENDAYSAGO = this.calculateDays(-7);
 		// this.thirtyDaysAgo = this.calculateDays(-30);
 	}
