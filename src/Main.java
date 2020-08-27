@@ -255,7 +255,7 @@ public class Main {
 		if (!csvFile.exists()) {
 			HttpClient client = HttpClients.createDefault();
 			HttpResponse response = client.execute(new HttpGet(
-					"http://testbed.tbs.alpha.canada.ca/testbed/covid19/rest/csv?start=0&rows=10000&lang=" + lang));
+					"http://testbed.tbs.alpha.canada.ca/testbed/covid19/rest/csv?start=0&rows=5000&lang=" + lang));
 			HttpEntity entity = response.getEntity();
 			String responseString = EntityUtils.toString(entity, "UTF-8");
 			FileUtils.writeStringToFile(new File("./data/import/covid19-" + importDate + "_" + lang + ".csv"),
