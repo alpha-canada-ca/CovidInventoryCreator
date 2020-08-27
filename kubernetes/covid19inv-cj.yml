@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: pageperformancecacher
+  name: covidinventorycreator
 spec:
   schedule: "0 1 * * *"
   jobTemplate:
@@ -13,6 +13,13 @@ spec:
             image: tbsacr.azurecr.io/covidinventorycreator:1.0.0
             imagePullPolicy: Always
           restartPolicy: OnFailure
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 3Gi
+            requests:
+              cpu: 512m
+              memory: 256m
           volumeMounts:
           - name: import
             mountPath: /app/data
