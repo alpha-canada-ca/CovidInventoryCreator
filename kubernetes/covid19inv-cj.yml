@@ -12,20 +12,15 @@ spec:
           - name: covidinventorycreator
             image: tbsacr.azurecr.io/covidinventorycreator:1.0.0
             imagePullPolicy: Always
+            volumeMounts:
+            - name: data
+              mountPath: /app/data
+          volumes:
+          - azureFile:
+              secretName: covid19-storage
+              shareName: covid19-inv
+            name: data
           restartPolicy: OnFailure
-          resources:
-            limits:
-              cpu: 1000m
-              memory: 3Gi
-            requests:
-              cpu: 512m
-              memory: 256m
-          volumeMounts:
-          - name: import
-            mountPath: /app/data
-        restartPolicy: OnFailure
-        volumes:
-        - azureFile:
-          secretName: covid19-storage
-          shareName: covid19-inv
-          name: data
+          
+        
+          
