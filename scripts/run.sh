@@ -1,2 +1,1 @@
-cd ..
-mvn exec:java -Dexec.args="$1"                     
+java -Xmx3048m -jar ./target/InventoryCreator-1.0.0-SNAPSHOT-jar-with-dependencies.jar $1
