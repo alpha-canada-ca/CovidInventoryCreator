@@ -14,6 +14,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.GeneralSecurityException;
 import java.text.DateFormat;
 import java.text.Normalizer;
@@ -28,7 +29,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.commons.codec.Charsets;
@@ -69,6 +69,9 @@ import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
 public class Main {
+
+	public boolean includeUniqueVisits = false;
+	public boolean debug = true;
 
 	public static String[] AEM_HEADER = { "Name", "Page title", "H1", "Language (jcr:language)", "Page path",
 			"Opposite language page title", "Opposite language page path", "Hide in navigation",
@@ -167,7 +170,7 @@ public class Main {
 	public static final DateFormat AEM_DATE_FORMAT = new SimpleDateFormat("MM-dd-yyyy");
 	public String importDate = "";
 	public static String TODAY;
-	public static String TWODAYSAGO;
+	public static String YESTERDAY;
 	public static String SEVENDAYSAGO;
 
 	private String datePostFix = "T00:00:00.000";
@@ -175,6 +178,19 @@ public class Main {
 	public String[] IGNORE_LIST = { "https://achatsetventes.gc.ca" };
 
 	public Date AFTER_DATE = DATE_FORMAT.parse("2019-01-01");
+
+	public class BiLang {
+		String en;
+		String fr;
+		String aemName;
+	}
+
+	public class PagePerformance {
+		String type;
+		String url;
+		String oUrl;
+		String[] dates = new String[2];
+	}
 
 	public static void main(String args[]) throws Exception {
 		if (args.length > 0) {
@@ -184,16 +200,13 @@ public class Main {
 		}
 	}
 
-	public class BiLang {
-		String en;
-		String fr;
-		String aemName;
-	}
-
 	public Main(String date) throws Exception {
+
+		createDirs();
+		copyFiles();
 		calculateDates();
 		if (date == null) {
-			this.importDate = TWODAYSAGO;
+			this.importDate = YESTERDAY;
 		} else {
 			this.importDate = date;
 		}
@@ -211,11 +224,33 @@ public class Main {
 		outputDataHTML("en");
 		outputDataHTML("fr");
 		dumpDepartments();
+		deleteFiles();
 		System.out.println("Total processing time:" + (System.currentTimeMillis() - start) / 1000 / 60);
 	}
 
+	private void deleteFiles() throws IOException {
+		if (!debug) {
+			FileUtils.deleteDirectory(new File("./data/import"));
+		}
+	}
+
+	private void createDirs() {
+		try {
+			new File("./data/import").mkdirs();
+			new File("./data/export").mkdirs();
+		} catch (Exception e) {
+
+		}
+	}
+
+	private void copyFiles() throws IOException {
+		FileUtils.copyDirectory(new File("./initialdata"), new File("./data/import"));
+		Files.copy(Paths.get("./initialdata/departmentsgathered.csv"),
+				Paths.get("./data/export/departmentsgathered.csv"), StandardCopyOption.REPLACE_EXISTING);
+	}
+
 	private void downloadCSVDump(String lang, String importDate) throws Exception {
-		File csvFile = new File("import/covid19-" + importDate + "_" + lang + ".csv");
+		File csvFile = new File("./data/import/covid19-" + importDate + "_" + lang + ".csv");
 
 		if (!csvFile.exists()) {
 			HttpClient client = HttpClients.createDefault();
@@ -223,13 +258,13 @@ public class Main {
 					"http://testbed.tbs.alpha.canada.ca/testbed/covid19/rest/csv?start=0&rows=10000&lang=" + lang));
 			HttpEntity entity = response.getEntity();
 			String responseString = EntityUtils.toString(entity, "UTF-8");
-			FileUtils.writeStringToFile(new File("import/covid19-" + importDate + "_" + lang + ".csv"), responseString,
-					Charset.forName("UTF-8"));
+			FileUtils.writeStringToFile(new File("./data/import/covid19-" + importDate + "_" + lang + ".csv"),
+					responseString, Charset.forName("UTF-8"));
 		}
 	}
 
 	private void downloadAEMDump(String date) throws GeneralSecurityException, IOException {
-		File aemFile = new File("import/gcPageReport-publish-" + date + ".csv");
+		File aemFile = new File("./data/import/gcPageReport-publish-" + date + ".csv");
 		if (!aemFile.exists()) {
 			final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
 			Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, null)
@@ -247,7 +282,7 @@ public class Main {
 				for (com.google.api.services.drive.model.File file : files) {
 					System.out.printf("%s (%s)\n", file.getName(), file.getId());
 					if (file.getName().contains(date) && file.getName().contains("publish")) {
-						try (FileOutputStream outputStream = new FileOutputStream("import/" + file.getName())) {
+						try (FileOutputStream outputStream = new FileOutputStream("./data/import/" + file.getName())) {
 							service.files().get(file.getId()).executeMediaAndDownloadTo(outputStream);
 						}
 					}
@@ -261,8 +296,8 @@ public class Main {
 	}
 
 	private void downloadGCSearchDump(String date) throws GeneralSecurityException, IOException {
-		File gcFileEN = new File("import/covid-inventory-" + date + "_EN.json");
-		File gcFileFR = new File("import/covid-inventory-" + date + "_FR.json");
+		File gcFileEN = new File("./data/import/covid-inventory-" + date + "_EN.json");
+		File gcFileFR = new File("./data/import/covid-inventory-" + date + "_FR.json");
 		if (!gcFileEN.exists() || !gcFileFR.exists()) {
 			final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
 			Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, null)
@@ -280,7 +315,7 @@ public class Main {
 				for (com.google.api.services.drive.model.File file : files) {
 					System.out.printf("%s (%s)\n", file.getName(), file.getId());
 					if (file.getName().contains(date)) {
-						try (FileOutputStream outputStream = new FileOutputStream("import/" + file.getName())) {
+						try (FileOutputStream outputStream = new FileOutputStream("./data/import/" + file.getName())) {
 							service.files().get(file.getId()).executeMediaAndDownloadTo(outputStream);
 						}
 					}
@@ -303,35 +338,22 @@ public class Main {
 		return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
 	}
 
-	public void calculateDates() {
+	private void calculateDates() {
 		TODAY = this.calculateDays(-1);
-		TWODAYSAGO = this.calculateDays(-2);
+		YESTERDAY = this.calculateDays(-1);
 		SEVENDAYSAGO = this.calculateDays(-7);
 		// this.thirtyDaysAgo = this.calculateDays(-30);
 	}
 
-	public String calculateMonth(int month) {
-		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.MONTH, month);
-		return DATE_FORMAT.format(cal.getTime());
-	}
-
-	public String calculateDays(int days) {
+	private String calculateDays(int days) {
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.DAY_OF_MONTH, days);
 		return DATE_FORMAT.format(cal.getTime());
 	}
 
-	public class PagePerformance {
-		String type;
-		String url;
-		String oUrl;
-		String[] dates = new String[2];
-	}
+	private String determineUniqueVisits(String url) throws IOException {
 
-	public String determineUniqueVisits(String url) throws IOException {
-
-		if (url.toLowerCase().contains("www.canada.ca")) {
+		if (url.toLowerCase().contains("www.canada.ca") && this.includeUniqueVisits) {
 			String json = null;
 			JsonObject obj = null;
 			JsonObject summary = null;
@@ -384,7 +406,7 @@ public class Main {
 		return "";
 	}
 
-	public String determineAudience(CSVRecord record) {
+	private String determineAudience(CSVRecord record) {
 		try {
 			String audience = record.get("Audience").replace("gc:audience/", ", ").replace("-", " ").trim()
 					.replaceFirst(",", "");
@@ -403,80 +425,7 @@ public class Main {
 
 	}
 
-	public void dumpAEMFrench() throws Exception {
-		Reader in = new FileReader("./data/aemdepartments.csv");
-		Iterable<CSVRecord> aemRecords = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(in);
-		HashMap<String, String> aemMapEN = new HashMap<String, String>();
-		List<BiLang> outputList = new ArrayList<BiLang>();
-		for (CSVRecord record : aemRecords) {
-			aemMapEN.put(record.get("English").toUpperCase().trim(), record.get("Publisher organization name"));
-		}
-
-		Reader in2 = new FileReader("./data/deptNamesAndAcronyms.csv");
-		Iterable<CSVRecord> deptNamesRecords = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(in2);
-		for (CSVRecord record : deptNamesRecords) {
-			String appliedName = record.get("Applied EN");
-			String legalName = record.get("Legal EN");
-			List<String> toRemove = new ArrayList<String>();
-			for (String aemKey : aemMapEN.keySet()) {
-				if (aemKey.contains(appliedName.toUpperCase()) || appliedName.toUpperCase().contains(aemKey)) {
-					BiLang biLang = new BiLang();
-					biLang.en = legalName;
-					biLang.fr = record.get("Legal FR");
-					biLang.aemName = aemMapEN.get(aemKey);
-					outputList.add(biLang);
-					toRemove.add(appliedName.toUpperCase());
-					break;
-				} else if (aemKey.contains(legalName.toUpperCase()) || legalName.toUpperCase().contains(aemKey)) {
-					BiLang biLang = new BiLang();
-					biLang.en = legalName;
-					biLang.fr = record.get("Legal FR");
-					biLang.aemName = aemMapEN.get(aemKey);
-					outputList.add(biLang);
-					toRemove.add(legalName.toUpperCase());
-					break;
-				}
-			}
-			for (String remove : toRemove) {
-				aemMapEN.remove(remove);
-			}
-		}
-		final BufferedWriter writer = Files.newBufferedWriter(Paths.get("./export/aemdepartmentsfinal.csv"));
-		final CSVFormat csvFormat = CSVFormat.EXCEL.withHeader("Publisher organization name", "English", "French");
-		try (CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat)) {
-			for (BiLang biLang : outputList) {
-				csvPrinter.printRecord(biLang.aemName, biLang.en, biLang.fr);
-			}
-		}
-
-	}
-
-	public void dumpAEMPublishers() throws Exception {
-		HashSet<String> departments = new HashSet<String>();
-
-		Reader in = new FileReader("./import/gcPageReport-publish-" + this.importDate + ".csv");
-		Iterable<CSVRecord> records = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(in);
-		for (CSVRecord record : records) {
-			String publisher = record.get("Publisher organization name");
-			publisher = publisher.replace("gc:institutions", "");
-			String publishers[] = publisher.split("/");
-			for (String pub : publishers) {
-				departments.add(pub);
-			}
-		}
-
-		final BufferedWriter writer = Files.newBufferedWriter(Paths.get("./export/aemdepartments.csv"));
-		final CSVFormat csvFormat = CSVFormat.EXCEL.withHeader("Publisher organization name", "English", "French");
-		try (CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat)) {
-			for (String publisher : departments) {
-				if (publisher.length() > 0) {
-					csvPrinter.printRecord(publisher, capitalizeWord(publisher.replace("-", " ")), "");
-				}
-			}
-		}
-	}
-
-	public String capitalizeWord(String str) {
+	private String capitalizeWord(String str) {
 		if (str.length() > 0 && !str.equals("")) {
 			str = str.trim().replaceAll(" +", " ");
 			// System.out.println("Word:"+str);
@@ -493,11 +442,11 @@ public class Main {
 		}
 	}
 
-	public void loadFrenchOutputHeaders() throws Exception {
+	private void loadFrenchOutputHeaders() throws Exception {
 		List<String> list = new ArrayList<String>();
 		HashMap<String, String> frenchHeader = new HashMap<String, String>();
 		Iterable<CSVRecord> records2 = CSVFormat.EXCEL.withFirstRecordAsHeader()
-				.parse(new FileReader("./data/headers.csv"));
+				.parse(new FileReader("./data/import/headers.csv"));
 		for (CSVRecord record : records2) {
 			String en = record.get(0);
 			String fr = record.get(1);
@@ -514,22 +463,6 @@ public class Main {
 		this.OUTPUT_HEADERS_FR = list.stream().toArray(String[]::new);
 	}
 
-	public void dumpHeaders() throws Exception {
-		final BufferedWriter writer = Files.newBufferedWriter(Paths.get("./export/headers.csv"));
-		final CSVFormat csvFormat = CSVFormat.EXCEL.withHeader("English", "French");
-		try (CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);) {
-			for (String header : OUTPUT_HEADERS_EN) {
-				csvPrinter.printRecord(header, "");
-			}
-			for (String header : SEARCH_HEADERS) {
-				csvPrinter.printRecord(header, "");
-			}
-			for (String header : AEM_HEADER) {
-				csvPrinter.printRecord(header, "");
-			}
-		}
-	}
-
 	private static String readLineByLineJava8(String filePath) {
 		StringBuilder contentBuilder = new StringBuilder();
 		try (Stream<String> stream = Files.lines(Paths.get(filePath), StandardCharsets.UTF_8)) {
@@ -540,25 +473,8 @@ public class Main {
 		return contentBuilder.toString();
 	}
 
-	public Set<String> loadManualList(String lang) throws Exception {
-		Set<String> urls = new HashSet<String>();
-		Reader in2 = new FileReader("./import/Page inventory-Table 1.csv");
-		Iterable<CSVRecord> records2 = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(in2);
-		for (CSVRecord record : records2) {
-			String en = record.get(0);
-			String fr = record.get(1);
-			if (en != null && !en.equals("") && lang.contains("en")) {
-				urls.add(en);
-			}
-			if (fr != null && !fr.equals("") && lang.contains("fr")) {
-				urls.add(fr);
-			}
-		}
-		return urls;
-	}
-
-	public void loadDepartments() throws Exception {
-		Reader in2 = new FileReader("./export/departmentsgathered.csv");
+	private void loadDepartments() throws Exception {
+		Reader in2 = new FileReader("./data/export/departmentsgathered.csv");
 		Iterable<CSVRecord> records2 = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(in2);
 		for (CSVRecord record : records2) {
 			String url = record.get(2);
@@ -571,7 +487,7 @@ public class Main {
 			this.urlDepartmentsFr.put(url, fr);
 		}
 
-		Reader in = new FileReader("./data/aemdepartments.csv");
+		Reader in = new FileReader("./data/import/aemdepartments.csv");
 		Iterable<CSVRecord> records = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(in);
 		for (CSVRecord record : records) {
 			String aemType = record.get(0);
@@ -581,13 +497,10 @@ public class Main {
 			this.aemDepartmentsFr.put(aemType, fr);
 		}
 
-		// this.UsedDepartmentsEn.add("N/A");
-		// this.UsedDepartmentsFr.add("N/A");
-
 	}
 
-	public void dumpDepartments() throws Exception {
-		final BufferedWriter writer = Files.newBufferedWriter(Paths.get("./export/departmentsgathered.csv"));
+	private void dumpDepartments() throws Exception {
+		final BufferedWriter writer = Files.newBufferedWriter(Paths.get("./data/export/departmentsgathered.csv"));
 		final CSVFormat csvFormat = CSVFormat.EXCEL.withHeader("Department English", "Department French", "URLs");
 		HashSet<String> urls = new HashSet<String>();
 		urls.addAll(this.urlDepartmentsEn.keySet());
@@ -602,15 +515,15 @@ public class Main {
 		}
 	}
 
-	public void loadThemes() throws Exception {
-		Reader in2 = new FileReader("./data/themes_en.csv");
+	private void loadThemes() throws Exception {
+		Reader in2 = new FileReader("./data/import/themes_en.csv");
 		Iterable<CSVRecord> records2 = CSVFormat.EXCEL.parse(in2);
 		for (CSVRecord record : records2) {
 			// System.out.println(record.get("URL"));
 			this.themeEn.put(record.get(0), record.get(1));
 		}
 
-		Reader in1 = new FileReader("./data/themes_fr.csv");
+		Reader in1 = new FileReader("./data/import/themes_fr.csv");
 		Iterable<CSVRecord> records = CSVFormat.EXCEL.parse(in1);
 		for (CSVRecord record : records) {
 			// System.out.println(record.get("URL"));
@@ -619,15 +532,15 @@ public class Main {
 
 	}
 
-	public void writeToFile(String content, String fileName) throws IOException {
+	private void writeToFile(String content, String fileName) throws IOException {
 		Writer fileWriter = new OutputStreamWriter(new FileOutputStream(fileName), StandardCharsets.UTF_8);
 		PrintWriter printWriter = new PrintWriter(fileWriter);
 		printWriter.print(content);
 		printWriter.close();
 	}
 
-	public void outputDataHTML(String outputLang) throws Exception {
-		String template = readLineByLineJava8("./data/template_" + outputLang + ".html");
+	private void outputDataHTML(String outputLang) throws Exception {
+		String template = readLineByLineJava8("./data/import/template_" + outputLang + ".html");
 
 		// Insert themes
 		String themeList = "";
@@ -736,15 +649,14 @@ public class Main {
 		}
 		template = template.replace("<!-- ROW DATA -->", html);
 
-		writeToFile(template,
-				"../docker/site-optimization/docker/images/covid19inv_nginx/covid19_" + outputLang + ".html");
+		writeToFile(template, "./data/export/covid19_" + outputLang + ".html");
 	}
 
-	public String escapeCharacters(String text) {
+	private String escapeCharacters(String text) {
 		return StringEscapeUtils.escapeHtml(text);
 	}
 
-	public String contentTypeContent(Map<String, String> record, String url) {
+	private String contentTypeContent(Map<String, String> record, String url) {
 		boolean covid = false;
 		String checkFields[] = { "title_s", "dcterms_description_s", "id", "body_t_h1", "keywords_t",
 				"dcterms.subject_s", "description_s" };
@@ -770,7 +682,7 @@ public class Main {
 		}
 	}
 
-	public String contentTypeContent(CSVRecord record, String url) {
+	private String contentTypeContent(CSVRecord record, String url) {
 		boolean covid = false;
 		String checkFields[] = { "Title", "Has Alert", "H2", "dcterms.subject", "desc", "Description", "Name",
 				"Page title", "H1", "Keywords", "Primary topic", "Additional topics", "desc", "dcterms.subject",
@@ -803,7 +715,7 @@ public class Main {
 		}
 	}
 
-	public Date getLastModifiedDate(CSVRecord record, String url) {
+	private Date getLastModifiedDate(CSVRecord record, String url) {
 		try {
 			String lastModified = record.get("Last Modified");
 			return DATE_FORMAT.parse(lastModified);
@@ -834,7 +746,7 @@ public class Main {
 		return null;
 	}
 
-	public Date getLastModifiedDate(Map<String, String> record, String url) {
+	private Date getLastModifiedDate(Map<String, String> record, String url) {
 		try {
 			return DATE_FORMAT.parse((String) record.get("dateModified_nf"));
 		} catch (Exception e) {
@@ -856,7 +768,7 @@ public class Main {
 		return null;
 	}
 
-	public static boolean stringContainsItemFromList(String inputStr, String[] items) {
+	private boolean stringContainsItemFromList(String inputStr, String[] items) {
 		if (!inputStr.equals("")) {
 			for (int i = 0; i < items.length; i++) {
 				if (inputStr.toLowerCase().contains(items[i].toLowerCase())) {
@@ -867,7 +779,7 @@ public class Main {
 		return false;
 	}
 
-	public static boolean stringContainsWordsFromList(String input, String[] items) {
+	private boolean stringContainsWordsFromList(String input, String[] items) {
 		if (!input.equals("")) {
 			for (String keyword : items) {
 				if (!keyword.contains(" ")) {
@@ -899,7 +811,7 @@ public class Main {
 		return false;
 	}
 
-	public String determineContentType(String contentTypeContent, String lang) {
+	private String determineContentType(String contentTypeContent, String lang) {
 		String substantiveContentTypes[] = { "Title", "dcterms.subject", "desc", "Description", "Name", "Page title",
 				"H1", "Keywords", "Primary topic", "Additional topics", "title_s", "dcterms_description_s", "id",
 				"body_t_h1", "keywords_t", "dcterms.subject_s", "description_s" };
@@ -934,7 +846,7 @@ public class Main {
 		return contentType;
 	}
 
-	public String determineTheme(String url, String lang) {
+	private String determineTheme(String url, String lang) {
 		Map<String, String> themes = this.themeEn;
 		// HashSet<String> usedTheme = this.usedThemesEn;
 		if (lang.toLowerCase().contains("fr")) {
@@ -950,7 +862,7 @@ public class Main {
 		return "N/A";
 	}
 
-	public String determineDept(String url, String lang, CSVRecord record, Map<String, String> map) {
+	private String determineDept(String url, String lang, CSVRecord record, Map<String, String> map) {
 		Map<String, String> depts = this.urlDepartmentsEn;
 		// HashSet<String> usedDepts = this.UsedDepartmentsEn;
 		if (lang.toLowerCase().contains("fr")) {
@@ -1037,26 +949,17 @@ public class Main {
 		}
 	}
 
-	public void loadGCSearchData() throws Exception {
+	private void loadGCSearchData(String lang) throws Exception {
 
 		Reader in4 = new InputStreamReader(
-				new FileInputStream("./import/covid-inventory-" + this.importDate + "_EN.json"),
+				new FileInputStream(
+						"./data/import/covid-inventory-" + this.importDate + "_" + lang.toUpperCase() + ".json"),
 				StandardCharsets.UTF_8);
 		@SuppressWarnings("rawtypes")
 		java.lang.reflect.Type mapType = new TypeToken<Map<String, List>>() {
 		}.getType();
 		Map<String, List<Map<String, String>>> son = new Gson().fromJson(in4, mapType);
-		List<Map<String, String>> listen = son.get("docs");
-
-		Reader in5 = new InputStreamReader(
-				new FileInputStream("./import/covid-inventory-" + this.importDate + "_FR.json"),
-				StandardCharsets.UTF_8);
-		Map<String, List<Map<String, String>>> son2 = new Gson().fromJson(in5, mapType);
-		List<Map<String, String>> listfr = son2.get("docs");
-
-		List<Map<String, String>> list = new ArrayList<Map<String, String>>();
-		list.addAll(listen);
-		list.addAll(listfr);
+		List<Map<String, String>> list = son.get("docs");
 
 		// System.out.println("GC Search Count:" + list.size());
 
@@ -1096,14 +999,14 @@ public class Main {
 
 	}
 
-	public void loadCustomSearchData() throws Exception {
+	private void loadCustomSearchData() throws Exception {
 		this.loadCustomSearchData("en");
 		this.loadCustomSearchData("fr");
 	}
 
-	public void loadCustomSearchData(String lang) throws Exception {
+	private void loadCustomSearchData(String lang) throws Exception {
 		Reader in2 = new InputStreamReader(
-				new FileInputStream("./import/covid19-" + this.importDate + "_" + lang + ".csv"),
+				new FileInputStream("./data/import/covid19-" + this.importDate + "_" + lang + ".csv"),
 				StandardCharsets.UTF_8);
 		Iterable<CSVRecord> records2 = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(in2);
 		for (CSVRecord record : records2) {
@@ -1146,10 +1049,9 @@ public class Main {
 		}
 	}
 
-	public void loadAEMData() throws Exception {
-		Reader in = new InputStreamReader(new FileInputStream(
-				"./import/gcPageReport-publish-" + AEM_DATE_FORMAT.format(DATE_FORMAT.parse(this.importDate)) + ".csv"),
-				StandardCharsets.UTF_8);
+	private void loadAEMData() throws Exception {
+		Reader in = new InputStreamReader(new FileInputStream("./data/import/gcPageReport-publish-"
+				+ AEM_DATE_FORMAT.format(DATE_FORMAT.parse(this.importDate)) + ".csv"), StandardCharsets.UTF_8);
 		Iterable<CSVRecord> records = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(in);
 		for (CSVRecord record : records) {
 			OutputData outputData = new OutputData();
@@ -1181,7 +1083,7 @@ public class Main {
 		}
 	}
 
-	public void loadData() throws Exception {
+	private void loadData() throws Exception {
 		// load AEM data first it is the most reliable
 		long start = System.currentTimeMillis();
 		this.loadAEMData();
@@ -1192,43 +1094,14 @@ public class Main {
 		System.out.println("Custom Search data:" + this.covidMap.size() + " Time:"
 				+ (System.currentTimeMillis() - start) / 1000 / 60);
 		start = System.currentTimeMillis();
-		this.loadGCSearchData();
+		this.loadGCSearchData("FR");
+		this.loadGCSearchData("EN");
 		System.out.println(
 				"GC Search data:" + this.covidMap.size() + " Time:" + (System.currentTimeMillis() - start) / 1000 / 60);
 
 	}
 
-	public void dumpAEMContentType() throws Exception {
-		Reader in = new FileReader("./import/gcPageReport-publish-" + this.importDate + ".csv");
-		Iterable<CSVRecord> records = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(in);
-		for (CSVRecord record : records) {
-			OutputData outputData = new OutputData();
-			System.out.println(record.get("Content type"));
-			String contentType = record.get("Content type").replace("gc:content-types/", ", ").replace("-", " ").trim()
-					.replaceFirst(",", "");
-			outputData.AEMContentType = this.capitalizeWord(contentType);
-
-			System.out.println(outputData.AEMContentType);
-
-		}
-	}
-
-	public void dumpAEMAudience() throws Exception {
-		Reader in = new FileReader("./import/gcPageReport-publish-" + this.importDate + ".csv");
-		Iterable<CSVRecord> records = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(in);
-		for (CSVRecord record : records) {
-			OutputData outputData = new OutputData();
-			System.out.println(record.get("Audience"));
-			String contentType = record.get("Audience").replace("gc:audience/", ", ").replace("-", " ").trim()
-					.replaceFirst(",", "");
-			outputData.AEMContentType = this.capitalizeWord(contentType);
-
-			System.out.println(outputData.AEMContentType);
-
-		}
-	}
-
-	public String determineLanguage(String url, String langRecordValue) {
+	private String determineLanguage(String url, String langRecordValue) {
 		if (langRecordValue == null || langRecordValue.contentEquals("")) {
 			if (url.contains("/en/")) {
 				return "en";
@@ -1240,39 +1113,4 @@ public class Main {
 		}
 	}
 
-	public void outputURLs() throws Exception {
-		Reader in = new FileReader("./data/gcPageReport-publish-03-31-2020.csv");
-		Iterable<CSVRecord> records = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(in);
-		for (CSVRecord record : records) {
-			System.out.println(record.get("Page path"));
-			break;
-		}
-		System.out.println("");
-		Reader in2 = new FileReader("./data/covid19-2020-03-31_en.csv");
-		Iterable<CSVRecord> records2 = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(in2);
-		for (CSVRecord record : records2) {
-			System.out.println(record.get("URL"));
-			break;
-		}
-	}
-
-	public void outputHeaders() throws Exception {
-		Reader in = new FileReader("./data/gcPageReport-publish-03-31-2020.csv");
-		Iterable<CSVRecord> records = CSVFormat.EXCEL.parse(in);
-		for (CSVRecord record : records) {
-			for (int i = 0; i < 49; i++) {
-				System.out.print("\"" + record.get(i) + "\",");
-			}
-			break;
-		}
-		System.out.println("");
-		Reader in2 = new FileReader("./data/covid19-2020-03-31_en.csv");
-		Iterable<CSVRecord> records2 = CSVFormat.EXCEL.parse(in2);
-		for (CSVRecord record : records2) {
-			for (int i = 0; i < 18; i++) {
-				System.out.print("\"" + record.get(i) + "\",");
-			}
-			break;
-		}
-	}
 }
