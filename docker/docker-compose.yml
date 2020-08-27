@@ -1,6 +1,7 @@
 version: '3'
 services:
   inventorycreator:
+    image: "tbsacr.azurecr.io/covidinventorycreator:1.0.0"
     build: 
       context: ../
       dockerfile: $PWD/Dockerfile
