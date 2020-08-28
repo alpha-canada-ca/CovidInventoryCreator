@@ -70,8 +70,8 @@ import com.google.gson.reflect.TypeToken;
 
 public class Main {
 
-	public boolean includeUniqueVisits = false;
-	public boolean debug = true;
+	public boolean includeUniqueVisits = true;
+	public boolean debug = false;
 
 	public static String[] AEM_HEADER = { "Name", "Page title", "H1", "Language (jcr:language)", "Page path",
 			"Opposite language page title", "Opposite language page path", "Hide in navigation",
