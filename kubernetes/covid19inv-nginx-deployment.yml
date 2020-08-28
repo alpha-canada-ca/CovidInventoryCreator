@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -25,7 +25,7 @@ spec:
         tier: frontend
     spec:
       containers:
-      - image: ryanhyma/covid19inv_nginx:1.0.0
+      - image: nginx:latest
         imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 3
@@ -68,6 +68,8 @@ spec:
           name: cm-nginx
           readOnly: true
           subPath: nginx.conf
+        - name: data
+          mountPath: /var/www/html
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -79,4 +81,8 @@ spec:
           defaultMode: 420
           name: covid19inv-nginx
         name: cm-nginx
-  replicas: 1
+      - azureFile:
+          secretName: covid19-storage
+          shareName: covid19-inv
+        name: data
+  

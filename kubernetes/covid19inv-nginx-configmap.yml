@@ -43,7 +43,7 @@ data:
           listen [::]:80;
 
           # Filesystem root of the site and index with fallback.
-          root /var/www/html;
+          root /var/www/html/export;
           index index.php index.html index.htm covid19_en.html;
 
           # Make site accessible from http://drupal.dev;
